@@ -28,9 +28,9 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
   }
 
   if (allowedRoles && profile && !allowedRoles.includes(profile.role)) {
-    // Client role → redirect to welcome center
+    // Client role → redirect to client dashboard
     if (profile.role === "client") {
-      return <Navigate to={ROUTES.WELCOME} replace />;
+      return <Navigate to="/client/dashboard" replace />;
     }
     return <Navigate to={ROUTES.DASHBOARD} replace />;
   }
@@ -52,7 +52,7 @@ export function PublicOnlyRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (user) {
-    if (profile?.role === "client") return <Navigate to="/welcome" replace />;
+    if (profile?.role === "client") return <Navigate to="/client/dashboard" replace />;
     return <Navigate to="/dashboard" replace />;
   }
 

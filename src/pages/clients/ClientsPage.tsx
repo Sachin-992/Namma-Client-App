@@ -397,6 +397,17 @@ export default function ClientsPage() {
                   {/* Action links */}
                   <div className="flex items-center gap-1">
                     <button
+                      onClick={() => {
+                        const link = `${window.location.origin}/register?email=${encodeURIComponent(client.email)}&name=${encodeURIComponent(client.name)}&invite=true`;
+                        navigator.clipboard.writeText(link);
+                        toast.success(`Invitation link for ${client.name} copied to clipboard!`);
+                      }}
+                      className="px-2 py-1 text-[10px] font-bold text-purple-600 hover:bg-purple-50 rounded-lg transition-colors cursor-pointer"
+                      title="Generate client registration invite link"
+                    >
+                      Invite
+                    </button>
+                    <button
                       onClick={() => handleSendReminder(client)}
                       className="px-2 py-1 text-[10px] font-bold text-amber-600 hover:bg-amber-50 rounded-lg transition-colors cursor-pointer"
                       title="Send payment reminder template"

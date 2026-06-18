@@ -6,6 +6,7 @@ import { z } from "zod";
 import { useTranslation } from "react-i18next";
 import { Eye, EyeOff, Languages } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/services/supabase/client";
 import { toast } from "sonner";
 import logoSquare from "@/assets/logo-square.jpg";
 
@@ -30,12 +31,28 @@ export default function LoginPage() {
   const onSubmit = async (data: FormData) => {
     setLoading(true);
     const { error } = await signIn(data.email, data.password);
-    setLoading(false);
     if (error) {
+      setLoading(false);
       toast.error(error.message);
     } else {
+      const { data: { user } } = await supabase.auth.getUser();
+      let userRole = "admin";
+      if (user) {
+        const { data: prof } = await (supabase.from("profiles") as any)
+          .select("role")
+          .eq("id", user.id)
+          .maybeSingle();
+        if (prof?.role) {
+          userRole = prof.role;
+        }
+      }
+      setLoading(false);
       toast.success("Welcome back!");
-      navigate("/dashboard");
+      if (userRole === "client") {
+        navigate("/client/dashboard");
+      } else {
+        navigate("/dashboard");
+      }
     }
   };
 

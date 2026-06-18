@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Check, ChevronLeft, ChevronRight, Upload, X, Save } from "lucide-react";
 import { toast } from "sonner";
@@ -60,12 +60,15 @@ const INITIAL: FormData = {
 export default function RequirementWizardPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { user, profile } = useAuth();
   
-  const { data: clientInfo } = useClientInfo();
-  const { data: activeDraft, isLoading: loadingDraft } = useRequirementDraft();
-  const saveDraft = useSaveRequirementDraft();
-  const submitRequirement = useSubmitRequirement();
+  const queryClientId = searchParams.get("client_id") || undefined;
+  
+  const { data: clientInfo } = useClientInfo(queryClientId);
+  const { data: activeDraft, isLoading: loadingDraft } = useRequirementDraft(queryClientId);
+  const saveDraft = useSaveRequirementDraft(queryClientId);
+  const submitRequirement = useSubmitRequirement(queryClientId);
 
   const [step, setStep] = useState(1);
   const [data, setData] = useState<FormData>(INITIAL);
@@ -203,7 +206,11 @@ export default function RequirementWizardPage() {
         stepData: data as any,
       });
       toast.success("Requirements submitted successfully!");
-      navigate("/welcome");
+      if (profile?.role === "admin" || profile?.role === "team_member") {
+        navigate("/requirements");
+      } else {
+        navigate("/welcome");
+      }
     } catch (err: any) {
       toast.error(err.message || "Failed to submit requirements");
     } finally {

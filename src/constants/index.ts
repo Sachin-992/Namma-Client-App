@@ -20,6 +20,14 @@ export const ROUTES = {
   WELCOME: "/welcome",
   SETTINGS: "/settings",
   CLOSURE: "/projects/:id/closure",
+  CLIENT_DASHBOARD: "/client/dashboard",
+  CLIENT_PROJECTS: "/client/projects",
+  CLIENT_REQUIREMENTS: "/client/requirements",
+  CLIENT_DOCUMENTS: "/client/documents",
+  CLIENT_INVOICES: "/client/invoices",
+  CLIENT_PAYMENTS: "/client/payments",
+  CLIENT_DEADLINES: "/client/deadlines",
+  CLIENT_PROFILE: "/client/profile",
 } as const;
 
 export const QUERY_KEYS = {

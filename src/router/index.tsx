@@ -2,6 +2,7 @@ import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ProtectedRoute, PublicOnlyRoute } from "./ProtectedRoute";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { ClientLayout } from "@/components/layout/ClientLayout";
 import logoSquare from "@/assets/logo-square.jpg";
 
 // Lazy-loaded pages
@@ -26,6 +27,16 @@ const NotesPage = lazy(() => import("@/pages/NotesPage"));
 const WelcomeCenterPage = lazy(() => import("@/pages/WelcomeCenterPage"));
 const SettingsPage = lazy(() => import("@/pages/SettingsPage"));
 const ProjectClosurePage = lazy(() => import("@/pages/projects/ProjectClosurePage"));
+
+// Client Portal Pages
+const ClientDashboardPage = lazy(() => import("@/pages/client/ClientDashboardPage"));
+const ClientProjectsPage = lazy(() => import("@/pages/client/ClientProjectsPage"));
+const ClientRequirementsPage = lazy(() => import("@/pages/client/ClientRequirementsPage"));
+const ClientDocumentsPage = lazy(() => import("@/pages/client/ClientDocumentsPage"));
+const ClientInvoicesPage = lazy(() => import("@/pages/client/ClientInvoicesPage"));
+const ClientPaymentsPage = lazy(() => import("@/pages/client/ClientPaymentsPage"));
+const ClientDeadlinesPage = lazy(() => import("@/pages/client/ClientDeadlinesPage"));
+const ClientProfilePage = lazy(() => import("@/pages/client/ClientProfilePage"));
 
 const PageLoader = () => (
   <div className="min-h-screen flex items-center justify-center bg-background">
@@ -90,6 +101,25 @@ export function AppRouter() {
               </ProtectedRoute>
             }
           />
+
+          {/* Client portal routes inside ClientLayout */}
+          <Route
+            path="/client"
+            element={
+              <ProtectedRoute allowedRoles={["client"]}>
+                <ClientLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="dashboard" element={<ClientDashboardPage />} />
+            <Route path="projects" element={<ClientProjectsPage />} />
+            <Route path="requirements" element={<ClientRequirementsPage />} />
+            <Route path="documents" element={<ClientDocumentsPage />} />
+            <Route path="invoices" element={<ClientInvoicesPage />} />
+            <Route path="payments" element={<ClientPaymentsPage />} />
+            <Route path="deadlines" element={<ClientDeadlinesPage />} />
+            <Route path="profile" element={<ClientProfilePage />} />
+          </Route>
 
           {/* Admin / Team member routes inside AppLayout */}
           <Route

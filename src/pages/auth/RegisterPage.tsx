@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { cn } from "@/utils";
 import logoSquare from "@/assets/logo-square.jpg";
 
 const schema = z.object({
@@ -24,11 +25,20 @@ export default function RegisterPage() {
   const { t } = useTranslation();
   const { signUp } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const invitedEmail = searchParams.get("email") || "";
+  const invitedName = searchParams.get("name") || "";
+  const isInvited = searchParams.get("invite") === "true";
+
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
+    defaultValues: {
+      email: invitedEmail,
+      fullName: invitedName,
+    },
   });
 
   const onSubmit = async (data: FormData) => {
@@ -55,12 +65,24 @@ export default function RegisterPage() {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-foreground mb-1.5">{t("auth.fullName")}</label>
-              <input {...register("fullName")} type="text" placeholder="Arun Kumar" className="form-input" />
+              <input
+                {...register("fullName")}
+                type="text"
+                placeholder="Arun Kumar"
+                className={cn("form-input", isInvited && !!invitedName && "bg-slate-100/70 cursor-not-allowed text-slate-500 border-slate-200")}
+                readOnly={isInvited && !!invitedName}
+              />
               {errors.fullName && <p className="text-xs text-destructive mt-1">{errors.fullName.message}</p>}
             </div>
             <div>
               <label className="block text-sm font-medium text-foreground mb-1.5">{t("auth.emailAddress")}</label>
-              <input {...register("email")} type="email" placeholder="name@company.com" className="form-input" />
+              <input
+                {...register("email")}
+                type="email"
+                placeholder="name@company.com"
+                className={cn("form-input", isInvited && !!invitedEmail && "bg-slate-100/70 cursor-not-allowed text-slate-500 border-slate-200")}
+                readOnly={isInvited && !!invitedEmail}
+              />
               {errors.email && <p className="text-xs text-destructive mt-1">{errors.email.message}</p>}
             </div>
             <div>

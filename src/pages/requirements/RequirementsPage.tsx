@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { useRequirements } from "@/hooks/useRequirements";
 import { useAuth } from "@/hooks/useAuth";
+import { useClients } from "@/hooks/useClients";
 import { supabase } from "@/services/supabase/client";
 import { toast } from "sonner";
 import { cn, formatDate } from "@/utils";
@@ -34,7 +35,8 @@ export default function RequirementsPage() {
   const queryClient = useQueryClient();
 
   const { data: requirements, isLoading } = useRequirements();
-
+  const { data: clients } = useClients();
+  
   // Selected requirement for detail drawer
   const [selectedReq, setSelectedReq] = useState<any>(null);
   const [tabFilter, setTabFilter] = useState("all");
@@ -43,6 +45,10 @@ export default function RequirementsPage() {
   // Review notes form
   const [reviewNotes, setReviewNotes] = useState("");
   const [savingReview, setSavingReview] = useState(false);
+
+  // Invitation / On-Behalf Modal states
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [selectedClientIdForRequest, setSelectedClientIdForRequest] = useState("");
 
   // Real-time Postgres channel
   useEffect(() => {
@@ -208,15 +214,31 @@ Additional Notes: ${sd.additionalNotes || "None"}
           <h1 className="text-2xl font-bold text-foreground">{t("requirements.title")}</h1>
           <p className="text-sm text-muted-foreground mt-0.5">Collect and verify scope onboarding checklists</p>
         </div>
-        {profile?.role === "client" && (
-          <button
-            onClick={() => navigate("/requirements/wizard")}
-            className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white text-sm font-semibold rounded-xl hover:bg-primary/95 transition-all shadow-sm cursor-pointer"
-          >
-            <Plus size={16} />
-            Onboarding Wizard
-          </button>
-        )}
+        <div className="flex items-center gap-3">
+          {profile?.role === "client" && (
+            <button
+              onClick={() => navigate("/requirements/wizard")}
+              className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white text-sm font-semibold rounded-xl hover:bg-primary/95 transition-all shadow-sm cursor-pointer"
+            >
+              <Plus size={16} />
+              Onboarding Wizard
+            </button>
+          )}
+          {(profile?.role === "admin" || profile?.role === "team_member") && (
+            <button
+              onClick={() => {
+                if (clients && clients.length > 0) {
+                  setSelectedClientIdForRequest(clients[0].id);
+                }
+                setShowInviteModal(true);
+              }}
+              className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white text-sm font-semibold rounded-xl hover:bg-primary/95 transition-all shadow-sm cursor-pointer"
+            >
+              <Plus size={16} />
+              Create Requirement Request
+            </button>
+          )}
+        </div>
       </div>
 
       {/* KPI summaries cards */}
@@ -332,13 +354,23 @@ Additional Notes: ${sd.additionalNotes || "None"}
                   Submitted: {req.submitted_at ? formatDate(req.submitted_at) : "—"}
                 </span>
                 
-                <button
-                  onClick={() => setSelectedReq(req)}
-                  className="flex items-center gap-1 text-xs text-primary font-bold hover:underline cursor-pointer"
-                >
-                  {profile?.role === "admin" || profile?.role === "team_member" ? "Verify / Review" : "View Details"}
-                  <ArrowRight size={13} />
-                </button>
+                {req.computedStatus === "Draft" || req.computedStatus === "Changes Requested" ? (
+                  <button
+                    onClick={() => navigate(profile?.role === "client" ? "/requirements/wizard" : `/requirements/wizard?client_id=${req.client_id}`)}
+                    className="flex items-center gap-1 text-xs text-blue-600 font-bold hover:underline cursor-pointer"
+                  >
+                    Edit Draft
+                    <ArrowRight size={13} />
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => setSelectedReq(req)}
+                    className="flex items-center gap-1 text-xs text-primary font-bold hover:underline cursor-pointer"
+                  >
+                    {profile?.role === "admin" || profile?.role === "team_member" ? "Verify / Review" : "View Details"}
+                    <ArrowRight size={13} />
+                  </button>
+                )}
               </div>
             </div>
           ))}
@@ -517,6 +549,84 @@ Additional Notes: ${sd.additionalNotes || "None"}
                 </button>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Create Requirement Modal for Admins */}
+      {showInviteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm transition-opacity"
+            onClick={() => setShowInviteModal(false)}
+          />
+
+          {/* Modal Content */}
+          <div className="relative w-full max-w-md bg-white border border-slate-200 rounded-3xl p-6 shadow-2xl z-10 animate-scale-in text-left">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-black text-slate-800 tracking-tight">Create Requirement Request</h3>
+              <button
+                onClick={() => setShowInviteModal(false)}
+                className="w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-500 hover:text-slate-700 cursor-pointer"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-500 leading-normal mb-5">
+              Select a client to initiate the requirements onboarding checklist. You can either fill out the questionnaire yourself on their behalf, or share a direct onboarding link for them to complete it.
+            </p>
+
+            <div className="space-y-4">
+              {/* Client Selector */}
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">Select Client Profile</label>
+                {clients && clients.length > 0 ? (
+                  <select
+                    value={selectedClientIdForRequest}
+                    onChange={(e) => setSelectedClientIdForRequest(e.target.value)}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-primary cursor-pointer text-slate-700"
+                  >
+                    {clients.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name} {c.company ? `(${c.company})` : ""}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <div className="text-xs text-rose-500 font-bold p-3 bg-rose-50 border border-rose-100 rounded-xl">
+                    No client records found. Please create a client profile first under the Clients tab.
+                  </div>
+                )}
+              </div>
+
+              {/* Actions Grid */}
+              <div className="pt-4 grid grid-cols-2 gap-3">
+                <button
+                  onClick={() => {
+                    const link = `${window.location.origin}/requirements/wizard`;
+                    navigator.clipboard.writeText(link);
+                    toast.success("Client onboarding wizard link copied to clipboard!");
+                  }}
+                  className="py-2.5 border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <Send size={13} className="text-slate-400" />
+                  Copy Share Link
+                </button>
+                <button
+                  disabled={!selectedClientIdForRequest}
+                  onClick={() => {
+                    setShowInviteModal(false);
+                    navigate(`/requirements/wizard?client_id=${selectedClientIdForRequest}`);
+                  }}
+                  className="py-2.5 bg-primary hover:bg-primary/95 text-white text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  <Plus size={13} />
+                  Fill on Behalf
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

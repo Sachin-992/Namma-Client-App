@@ -3,12 +3,22 @@ import { supabase } from "@/services/supabase/client";
 import { useAuth } from "./useAuth";
 import type { Requirement, RequirementStepData } from "@/types";
 
-export function useClientInfo() {
+export function useClientInfo(clientId?: string) {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ["current-client", user?.email],
+    queryKey: ["current-client", user?.email, clientId],
     queryFn: async () => {
+      if (clientId) {
+        const { data, error } = await (supabase.from("clients") as any)
+          .select("*")
+          .eq("id", clientId)
+          .maybeSingle();
+
+        if (error) throw error;
+        return data;
+      }
+
       if (!user?.email) return null;
 
       // Find the client record matching user email
@@ -20,7 +30,7 @@ export function useClientInfo() {
       if (error) throw error;
       return data;
     },
-    enabled: !!user?.email,
+    enabled: !!user?.email || !!clientId,
   });
 }
 
@@ -59,8 +69,8 @@ export function useRequirements() {
   });
 }
 
-export function useRequirementDraft() {
-  const { data: clientInfo } = useClientInfo();
+export function useRequirementDraft(clientId?: string) {
+  const { data: clientInfo } = useClientInfo(clientId);
 
   return useQuery<Requirement | null>({
     queryKey: ["requirement-draft", clientInfo?.id],
@@ -82,13 +92,13 @@ export function useRequirementDraft() {
   });
 }
 
-export function useSaveRequirementDraft() {
+export function useSaveRequirementDraft(clientId?: string) {
   const queryClient = useQueryClient();
-  const { data: clientInfo } = useClientInfo();
+  const { data: clientInfo } = useClientInfo(clientId);
 
   return useMutation({
     mutationFn: async ({ id, stepData }: { id?: string; stepData: RequirementStepData }) => {
-      if (!clientInfo?.id) throw new Error("Client record not found for this email.");
+      if (!clientInfo?.id) throw new Error("Client record not found.");
 
       const payload: any = {
         client_id: clientInfo.id,
@@ -115,13 +125,13 @@ export function useSaveRequirementDraft() {
   });
 }
 
-export function useSubmitRequirement() {
+export function useSubmitRequirement(clientId?: string) {
   const queryClient = useQueryClient();
-  const { data: clientInfo } = useClientInfo();
+  const { data: clientInfo } = useClientInfo(clientId);
 
   return useMutation({
     mutationFn: async ({ id, stepData }: { id?: string; stepData: RequirementStepData }) => {
-      if (!clientInfo?.id) throw new Error("Client record not found for this email.");
+      if (!clientInfo?.id) throw new Error("Client record not found.");
 
       const payload: any = {
         client_id: clientInfo.id,
