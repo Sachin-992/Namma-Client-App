@@ -67,6 +67,7 @@ export function AppRouter() {
               </PublicOnlyRoute>
             }
           />
+          <Route path="/signup" element={<Navigate to="/register" replace />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
 

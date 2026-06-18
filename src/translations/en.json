@@ -339,6 +339,39 @@
       "businessName": "Business Name",
       "message": "How can we help you?",
       "send": "Send Message"
+    },
+    "benefits": {
+      "title": "Built for the modern workforce",
+      "owners": "For Business Owners",
+      "ownersDesc": "Automate administrative overhead, focus on high-value strategy and growth.",
+      "freelancers": "For Freelancers",
+      "freelancersDesc": "Bill your requirements in your own language and receive timely payments in both languages.",
+      "fasterDelivery": "40% Faster Time To Task",
+      "customers": "12+ Customer Zones"
+    },
+    "testimonials": {
+      "title": "What our users say",
+      "quote1": "Namma Client has completely removed the language barrier between my agency and my partners in Chennai. The bilingual interface is a game changer.",
+      "author1": "Kartik Raj",
+      "role1": "Design Creative, Freelance",
+      "quote2": "The project tracking interface is so intuitive. My clients are easily impressed when they see visual progressions.",
+      "author2": "Priya Kumar",
+      "role2": "Agency Owner",
+      "quote3": "Having a clear breakdown that my clients can understand is a great tool! The translation is seamless and the platform grows with you.",
+      "author3": "Shane Bhattai",
+      "role3": "Startup Consultant"
+    },
+    "footer": {
+      "desc": "Everything business can manage through language barriers and deliver on-time deliveries and Tamil solutions.",
+      "about": "About Us",
+      "blog": "Blog",
+      "careers": "Careers",
+      "press": "Press",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service",
+      "cookie": "Cookie Policy",
+      "gdpr": "GDPR Compliance",
+      "copyright": "© 2024 Namma Client. All rights reserved."
     }
   }
 }
